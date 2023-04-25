@@ -1,14 +1,22 @@
+{-# LANGUAGE OverloadedRecordDot #-}
+{-# LANGUAGE GHC2021 #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE DeriveGeneric #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TypeOperators #-}
 {-# LANGUAGE FlexibleContexts #-}
 
 module Pages.CreateUser (render) where
 
-import Prelude hiding (div)
+import Prelude hiding ( div )
+import GHC.Generics ( Generic )
+import Data.Aeson ( FromJSON, decode )
+import Data.ByteString.Lazy.Char8 ( pack )
 
-import Effectful
-import Purview hiding (render, reducer)
-import Services.Users (addUser, User, UserRepo)
+import Effectful ( MonadIO(liftIO), type (:>), Eff, IOE )
+
+import Purview hiding ( reducer, render )
+import Services.Users (addUser, User (..), UserRepo)
 
 ----------
 -- View --
@@ -32,6 +40,12 @@ view _ = div
     ]
   ]
 
+-- Just used for parsing the raw form input.  Although I wonder if, with some
+-- magic, forms could be generated from data types?
+data UserForm = UserForm { name :: String, email :: String, password :: String }
+  deriving (Generic, Show)
+
+instance FromJSON UserForm where
 
 -------------
 -- Effects --
@@ -39,17 +53,28 @@ view _ = div
 
 type State = ()
 
-data Event = CreateUser (Maybe String)
+newtype Event = CreateUser (Maybe String)
   deriving (Show, Eq)
 
 reducer'
   :: (IOE :> es, UserRepo :> es)
   => Event -> State -> Eff es (State, [DirectedEvent parent Event])
 reducer' event _ = case event of
+
   CreateUser (Just formInput) -> do
-    liftIO $ print formInput
-    -- users <- addUser user
-    pure (() , [])
+    -- parse the JSON from the form into something a little more usable
+    let userForm = decode (pack formInput) :: Maybe UserForm
+
+    case userForm of
+      Just formData -> do
+        -- actually add the user, hurrah!
+        users <- addUser (User formData.name formData.email formData.password)
+        liftIO $ print users
+
+        pure (() , [])
+
+      Nothing ->
+        pure ((), [])
 
 reducer
   :: (IOE :> es, UserRepo :> es)
@@ -61,4 +86,3 @@ reducer = effectHandler'
 
 render :: (IOE :> es, UserRepo :> es) => Purview () (Eff es)
 render = reducer view
-
