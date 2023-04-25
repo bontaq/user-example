@@ -21,3 +21,9 @@ There is a plugin for Haskell, https://github.com/haskell/vscode-haskell, but yo
 * `Router` contains the route reducer, receiving an initial path then able to change it via events
 * `Pages` contains the pages (just user creation and listing now)
 * `Services` contains the user service
+
+### Automated formatted
+Provided by https://hackage.haskell.org/package/fourmolu, configuration is in `fourmolu.yaml`
+
+1. `cabal install fourmolu` (this will take awhile, it's a big boy)
+2. `fourmolu -i src` to format all files
