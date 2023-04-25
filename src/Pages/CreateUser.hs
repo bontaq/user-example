@@ -16,6 +16,7 @@ import Data.ByteString.Lazy.Char8 ( pack )
 import Effectful ( MonadIO(liftIO), type (:>), Eff, IOE )
 
 import Purview hiding ( reducer, render )
+import Router
 import Services.Users (addUser, User (..), UserRepo)
 
 ----------
@@ -58,7 +59,7 @@ newtype Event = CreateUser (Maybe String)
 
 reducer'
   :: (IOE :> es, UserRepo :> es)
-  => Event -> State -> Eff es (State, [DirectedEvent parent Event])
+  => Event -> State -> Eff es (State, [DirectedEvent RouterEvents Event])
 reducer' event _ = case event of
 
   CreateUser (Just formInput) -> do
@@ -71,18 +72,18 @@ reducer' event _ = case event of
         users <- addUser (User formData.name formData.email formData.password)
         liftIO $ print users
 
-        pure (() , [])
+        pure (() , [Parent (Redirect "/")])
 
       Nothing ->
         pure ((), [])
 
 reducer
   :: (IOE :> es, UserRepo :> es)
-  => (State -> Purview Event (Eff es)) -> Purview () (Eff es)
+  => (State -> Purview Event (Eff es)) -> Purview RouterEvents (Eff es)
 reducer = effectHandler'
   []       -- initial actions
   ()       -- initial state
   reducer' -- handles events
 
-render :: (IOE :> es, UserRepo :> es) => Purview () (Eff es)
+render :: (IOE :> es, UserRepo :> es) => Purview RouterEvents (Eff es)
 render = reducer view

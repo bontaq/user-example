@@ -16,6 +16,7 @@ import           Effectful (runEff, type (:>), Eff, IOE)
 import           Purview
 
 import           Services.Users (UserRepo, runUserRepoPure)
+import           Router
 import qualified Pages.Home as Home
 import qualified Pages.CreateUser as CreateUser
 
@@ -27,7 +28,7 @@ Top level for the website
 
 -}
 root :: (IOE :> es, UserRepo :> es) => Path -> Purview () (Eff es)
-root location = case location of
+root location = routerReducer location $ \newLocation -> case newLocation of
   "/"            -> Home.render
   "/create-user" -> CreateUser.render
   _ -> div [ text "Unknown test" ]

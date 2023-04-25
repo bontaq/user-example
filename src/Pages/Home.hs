@@ -8,6 +8,7 @@ import Prelude hiding (div)
 
 import Effectful
 import Purview hiding (render, reducer)
+import Router
 import Services.Users
 
 ----------
@@ -40,11 +41,11 @@ reducer' event _ = case event of
     users <- getUsers
     pure (users, [])
 
-reducer :: UserRepo :> es => (State -> Purview Event (Eff es)) -> Purview () (Eff es)
+reducer :: UserRepo :> es => (State -> Purview Event (Eff es)) -> Purview RouterEvents (Eff es)
 reducer = effectHandler'
   [Self LoadUsers]  -- initial actions
   []                -- initial state
   reducer'          -- handles events
 
-render :: UserRepo :> es => Purview () (Eff es)
+render :: UserRepo :> es => Purview RouterEvents (Eff es)
 render = reducer view
