@@ -9,24 +9,37 @@ import Prelude hiding (div)
 import qualified Network.Wai.Handler.Warp as Warp
 import qualified Network.WebSockets as WebSocket
 import qualified Network.Wai.Handler.WebSockets as WaiWebSocket
+import           Server (webSocketHandler, httpHandler)
 
-import Effectful
+import           Effectful (runEff, type (:>), Eff, IOE)
 
-import Purview
-import Server (webSocketHandler, httpHandler)
+import           Purview
 
-import Services.Users
-
+import           Services.Users (UserRepo, runUserRepoPure)
 import qualified Pages.Home as Home
 
 type Path = String
 
+{-
+
+Top level for the website
+
+-}
 root :: UserRepo :> es => Path -> Purview () (Eff es)
 root location = case location of
   "/"            -> Home.render
   "/create-user" -> undefined
   _ -> div [ text "Unknown test" ]
 
+{-
+
+This controls how things are being interpreted, and can
+easily be swapped around for different implmentations.
+
+From the type signature, if you squint, you can see
+it removes effects and getting everything to IO
+
+-}
 interpreter :: Eff '[UserRepo, IOE] a -> IO a
 interpreter = runEff . runUserRepoPure []
 
