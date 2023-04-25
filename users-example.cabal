@@ -18,6 +18,9 @@ executable e2e-tests
   hs-source-dirs:      src
   main-is:             Main.hs
   other-modules:       Server
+                     , Pages.Home
+                     , Pages.CreateUser
+                     , Services.Users
   default-language:    Haskell2010
   build-depends:       base >= 4.7 && < 5
                      , warp
@@ -30,6 +33,7 @@ executable e2e-tests
                      , text
                      , req
                      , aeson
+                     , effectful
   ghc-options:         -Wall
                        -Wcompat
                        -Widentities
