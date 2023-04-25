@@ -17,6 +17,7 @@ import           Purview
 
 import           Services.Users (UserRepo, runUserRepoPure)
 import qualified Pages.Home as Home
+import qualified Pages.CreateUser as CreateUser
 
 type Path = String
 
@@ -25,10 +26,10 @@ type Path = String
 Top level for the website
 
 -}
-root :: UserRepo :> es => Path -> Purview () (Eff es)
+root :: (IOE :> es, UserRepo :> es) => Path -> Purview () (Eff es)
 root location = case location of
   "/"            -> Home.render
-  "/create-user" -> undefined
+  "/create-user" -> CreateUser.render
   _ -> div [ text "Unknown test" ]
 
 {-
