@@ -67,11 +67,13 @@ reducer' event _ = case event of
     let userForm = decode (pack formInput) :: Maybe UserForm
 
     case userForm of
+
       Just formData -> do
         -- actually add the user, hurrah!
         users <- addUser (User formData.name formData.email formData.password)
         liftIO $ print users
 
+        -- send them back home
         pure (() , [Parent (Redirect "/")])
 
       Nothing ->

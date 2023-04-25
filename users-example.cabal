@@ -1,4 +1,4 @@
-name:                e2e-tests
+name:                user-example
 version:             0.1.0.0
 -- synopsis:
 -- description:
@@ -14,7 +14,7 @@ cabal-version:       >=1.10
 extra-source-files:  README.md
                      CHANGELOG.md
 
-executable e2e-tests
+executable user-example
   hs-source-dirs:      src
   main-is:             Main.hs
   other-modules:       Server

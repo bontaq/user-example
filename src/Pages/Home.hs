@@ -19,10 +19,12 @@ viewUser :: User -> Purview a m
 viewUser (User { name, email, password }) =
   div [ p [ text $ name <> " " <> email <> " " <> password ] ]
 
-view :: [User] -> Purview a m
+view :: [User] -> Purview Event m
 view users = div
   [ p [ text "Users:" ]
   , div $ fmap viewUser users
+  , onClick CreateUser $ button [ text "create user" ]
+  , onClick LoadUsers $ button [ text "load users" ]
   ]
 
 
@@ -32,14 +34,19 @@ view users = div
 
 type State = [User]
 
-data Event = LoadUsers
+data Event
+  = LoadUsers
+  | CreateUser
   deriving (Show, Eq)
 
-reducer' :: UserRepo :> es => Event -> State -> Eff es (State, [DirectedEvent parent Event])
-reducer' event _ = case event of
+reducer' :: UserRepo :> es => Event -> State -> Eff es (State, [DirectedEvent RouterEvents Event])
+reducer' event state = case event of
   LoadUsers -> do
     users <- getUsers
     pure (users, [])
+
+  CreateUser ->
+    pure (state, [Parent (Redirect "/create-user")])
 
 reducer :: UserRepo :> es => (State -> Purview Event (Eff es)) -> Purview RouterEvents (Eff es)
 reducer = effectHandler'
