@@ -15,3 +15,9 @@ There is a plugin for Haskell, https://github.com/haskell/vscode-haskell, but yo
 1. `cabal build`
 2. `cabal exec user-example`
 
+### File walkthrough
+* `Main` contains the top level element and interpreter
+* `Server` is the finer parts of handling web and websocket requests
+* `Router` contains the route reducer, receiving an initial path then able to change it via events
+* `Pages` contains the pages (just user creation and listing now)
+* `Services` contains the user service
