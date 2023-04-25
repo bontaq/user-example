@@ -10,7 +10,7 @@ module Services.Users
   , addUser
   , runUserRepoPure
   , UserRepo
-  , User
+  , User (..)
   )
 where
 
@@ -25,7 +25,7 @@ import Effectful.State.Static.Local (evalState, gets, modify)
 
 data User = User
   { name :: String, email :: String, password :: String }
-  deriving Show
+  deriving (Show, Eq)
 
 
 -----------------------
