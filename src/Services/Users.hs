@@ -9,14 +9,17 @@ module Services.Users
   ( getUsers
   , addUser
   , runUserRepoPure
+  , runUserRepoMVar
   , UserRepo
   , User (..)
   )
 where
 
+import Control.Concurrent
+
 import Effectful
 import Effectful.Dispatch.Dynamic (reinterpret, send)
-import Effectful.State.Static.Local (evalState, gets, modify)
+import Effectful.State.Static.Shared (evalState, gets, modify, evalStateMVar)
 
 
 -----------
@@ -62,6 +65,13 @@ runUserRepoPure usersList = reinterpret (evalState usersList) $ \env -> \case
     modify (\users -> user : users)
     gets id
 
+runUserRepoMVar :: MVar [User] -> Eff (UserRepo : es) a -> Eff es a
+runUserRepoMVar usersList = reinterpret (evalStateMVar usersList) $ \env -> \case
+  GetUsers ->
+    gets id
+  AddUser user -> do
+    modify (\users -> user : users)
+    gets id
 
 -------------
 -- Example --
