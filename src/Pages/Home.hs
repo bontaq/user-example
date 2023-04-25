@@ -1,13 +1,13 @@
+{-# LANGUAGE FlexibleContexts #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE FlexibleContexts #-}
 
 module Pages.Home (render) where
 
 import Prelude hiding (div)
 
 import Effectful
-import Purview hiding (render, reducer)
+import Purview hiding (reducer, render)
 import Router
 import Services.Users
 
@@ -16,17 +16,17 @@ import Services.Users
 ----------
 
 viewUser :: User -> Purview a m
-viewUser (User { name, email, password }) =
-  div [ p [ text $ name <> " " <> email <> " " <> password ] ]
+viewUser (User {name, email, password}) =
+  div [p [text $ name <> " " <> email <> " " <> password]]
 
 view :: [User] -> Purview Event m
-view users = div
-  [ p [ text "Users:" ]
-  , div $ fmap viewUser users
-  , onClick CreateUser $ button [ text "create user" ]
-  , onClick LoadUsers $ button [ text "load users" ]
-  ]
-
+view users =
+  div
+    [ p [text "Users:"]
+    , div $ fmap viewUser users
+    , onClick CreateUser $ button [text "create user"]
+    , onClick LoadUsers $ button [text "load users"]
+    ]
 
 -------------
 -- Effects --
@@ -39,20 +39,20 @@ data Event
   | CreateUser
   deriving (Show, Eq)
 
-reducer' :: UserRepo :> es => Event -> State -> Eff es (State, [DirectedEvent RouterEvents Event])
+reducer' :: (UserRepo :> es) => Event -> State -> Eff es (State, [DirectedEvent RouterEvents Event])
 reducer' event state = case event of
   LoadUsers -> do
     users <- getUsers
     pure (users, [])
-
   CreateUser ->
     pure (state, [Parent (Redirect "/create-user")])
 
-reducer :: UserRepo :> es => (State -> Purview Event (Eff es)) -> Purview RouterEvents (Eff es)
-reducer = effectHandler'
-  [Self LoadUsers]  -- initial actions
-  []                -- initial state
-  reducer'          -- handles events
+reducer :: (UserRepo :> es) => (State -> Purview Event (Eff es)) -> Purview RouterEvents (Eff es)
+reducer =
+  effectHandler'
+    [Self LoadUsers] -- initial actions
+    [] -- initial state
+    reducer' -- handles events
 
-render :: UserRepo :> es => Purview RouterEvents (Eff es)
+render :: (UserRepo :> es) => Purview RouterEvents (Eff es)
 render = reducer view

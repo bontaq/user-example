@@ -1,9 +1,9 @@
+{-# LANGUAGE DataKinds #-}
 {-# LANGUAGE FlexibleContexts #-}
+{-# LANGUAGE GADTs #-}
+{-# LANGUAGE LambdaCase #-}
 {-# LANGUAGE TypeFamilies #-}
 {-# LANGUAGE TypeOperators #-}
-{-# LANGUAGE LambdaCase #-}
-{-# LANGUAGE GADTs #-}
-{-# LANGUAGE DataKinds #-}
 
 module Services.Users
   ( getUsers
@@ -12,24 +12,21 @@ module Services.Users
   , runUserRepoMVar
   , UserRepo
   , User (..)
-  )
-where
+  ) where
 
 import Control.Concurrent
 
 import Effectful
 import Effectful.Dispatch.Dynamic (reinterpret, send)
-import Effectful.State.Static.Shared (evalState, gets, modify, evalStateMVar)
-
+import Effectful.State.Static.Shared (evalState, evalStateMVar, gets, modify)
 
 -----------
 -- Model --
 -----------
 
 data User = User
-  { name :: String, email :: String, password :: String }
+  {name :: String, email :: String, password :: String}
   deriving (Show, Eq)
-
 
 -----------------------
 -- Effect definition --
@@ -37,21 +34,19 @@ data User = User
 
 data UserRepo :: Effect where
   GetUsers :: UserRepo m [User]
-  AddUser  :: User -> UserRepo m [User]
+  AddUser :: User -> UserRepo m [User]
 
 type instance DispatchOf UserRepo = 'Dynamic
-
 
 ---------
 -- API --
 ---------
 
-getUsers :: UserRepo :> es => Eff es [User]
+getUsers :: (UserRepo :> es) => Eff es [User]
 getUsers = send GetUsers
 
-addUser :: UserRepo :> es => User -> Eff es [User]
+addUser :: (UserRepo :> es) => User -> Eff es [User]
 addUser user = send (AddUser user)
-
 
 -----------------
 -- Interpreter --
@@ -77,7 +72,7 @@ runUserRepoMVar usersList = reinterpret (evalStateMVar usersList) $ \env -> \cas
 -- Example --
 -------------
 
-testUsers :: UserRepo :> es => Eff es [User]
+testUsers :: (UserRepo :> es) => Eff es [User]
 testUsers = do
   _ <- addUser (User "name" "email" "password")
   getUsers
